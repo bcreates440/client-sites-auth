@@ -1,0 +1,14 @@
+# Cloudflare Worker that signs people in to a client website editor.
+#
+# It is NOT a website. This is a small shared service that does the one
+# thing GitHub Pages cannot: swap a GitHub login for an access token. It is
+# generic — it has no knowledge of which repo an editor is saving to, that's
+# enforced by GitHub's own collaborator permissions on each client's repo.
+# The same deployment serves every client site's /admin/.
+name = "client-sites-auth"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# The two secrets are NOT stored here. Set them once with:
+#   npx wrangler secret put GITHUB_CLIENT_ID
+#   npx wrangler secret put GITHUB_CLIENT_SECRET
