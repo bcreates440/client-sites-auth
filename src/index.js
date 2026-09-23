@@ -17,6 +17,17 @@
 
 const PROVIDER = "github";
 
+// The only pages allowed to receive a token. The popup hands the token to
+// whichever window asks for it, so without this list any website could open
+// /auth in a popup and collect a signed-in editor's token (which carries the
+// `repo` scope - every repo that person can reach, private ones included).
+// Add a client's https origin here when their site goes live, then redeploy.
+const ALLOWED_ORIGINS = [
+  "https://bcreates440.github.io", // every *.github.io/<repo>/ site
+  "https://wwcashow.com",
+  "https://www.wwcashow.com",
+];
+
 function page(script) {
   return new Response(
     '<!doctype html><meta charset="utf-8"><title>Signing in</title>' +
@@ -38,7 +49,9 @@ function handshake(ok, data) {
     "authorization:" + PROVIDER + ":" + (ok ? "success" : "error") + ":" + JSON.stringify(data);
   return page(
     "(function(){" +
+      "var allowed=" + JSON.stringify(ALLOWED_ORIGINS) + ";" +
       "function send(e){" +
+      "if(allowed.indexOf(e.origin)<0)return;" +
       "window.opener.postMessage(" + JSON.stringify(message) + ", e.origin);" +
       'window.removeEventListener("message", send, false);' +
       "window.close();" +
@@ -68,14 +81,27 @@ export default {
       to.searchParams.set("client_id", env.GITHUB_CLIENT_ID);
       to.searchParams.set("redirect_uri", url.origin + "/callback");
       to.searchParams.set("scope", "repo,user");
-      to.searchParams.set("state", crypto.randomUUID());
-      return Response.redirect(to.toString(), 302);
+      const state = crypto.randomUUID();
+      to.searchParams.set("state", state);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          location: to.toString(),
+          "set-cookie": `oauth_state=${state}; Path=/callback; Max-Age=600; HttpOnly; Secure; SameSite=Lax`,
+        },
+      });
     }
 
     // --- finish: swap the code GitHub gave us for a token -------------------
     if (url.pathname === "/callback") {
       const code = url.searchParams.get("code");
       if (!code) return handshake(false, { error: "GitHub did not return a code" });
+      // The state must match the cookie set by /auth, so nobody can finish a
+      // sign-in (their own GitHub account) inside someone else's editor.
+      const cookie = (request.headers.get("cookie") || "").match(/(?:^|;\s*)oauth_state=([^;]+)/);
+      if (!cookie || cookie[1] !== url.searchParams.get("state")) {
+        return handshake(false, { error: "Sign-in expired or was tampered with. Close this window and try again." });
+      }
 
       let body;
       try {

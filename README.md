@@ -15,13 +15,16 @@ backend:
   auth_endpoint: auth
 ```
 
-No per-client setup needed here — GitHub itself decides whether the signed-in
-user can actually save to `<owner>/<client-repo>`, via that repo's own
-collaborator list.
+GitHub itself decides whether the signed-in user can actually save to
+`<owner>/<client-repo>`, via that repo's own collaborator list. The one
+per-client step here: **add the site's https origin to `ALLOWED_ORIGINS` in
+`src/index.js` and redeploy** — the worker only hands a token to pages on that
+list (otherwise any website could open `/auth` and collect an editor's token).
 
 ## Deploy
 
 ```
+node test.mjs          # must print ok
 npx wrangler deploy
 npx wrangler secret put GITHUB_CLIENT_ID
 npx wrangler secret put GITHUB_CLIENT_SECRET
@@ -42,5 +45,7 @@ failing after 8 hours.
 - Confirm it's deployed: `npx wrangler deployments list`
 - Confirm both secrets are set: `npx wrangler secret list`
 - Confirm the OAuth App's callback URL still exactly matches `.../callback`
+- Popup says "Signing you in…" and never closes → the site's origin isn't in
+  `ALLOWED_ORIGINS` (check http vs https and `www.`)
 - A client's editor still won't save even with a good login → that's GitHub
   collaborator permissions on their repo, not this worker.
