@@ -26,6 +26,9 @@ const ALLOWED_ORIGINS = [
   "https://bcreates440.github.io", // every *.github.io/<repo>/ site
   "https://wwcashow.com",
   "https://www.wwcashow.com",
+  // Sites hosted on Cloudflare (everything except WWCA, which stays on
+  // GitHub Pages on purpose - see ops/design/hosting-decision.md).
+  "https://jones-uncommon-site.bcreates440.workers.dev",
 ];
 
 function page(script) {
