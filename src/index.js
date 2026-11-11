@@ -29,6 +29,7 @@ const ALLOWED_ORIGINS = [
   // Sites hosted on Cloudflare (everything except WWCA, which stays on
   // GitHub Pages on purpose - see ops/design/hosting-decision.md).
   "https://jones-uncommon-site.bcreates440.workers.dev",
+  "https://montaire-rally-demo.bcreates440.workers.dev",
 ];
 
 function page(script) {
