@@ -49,3 +49,19 @@ failing after 8 hours.
   `ALLOWED_ORIGINS` (check http vs https and `www.`)
 - A client's editor still won't save even with a good login → that's GitHub
   collaborator permissions on their repo, not this worker.
+
+## Email sign-in (`email/`)
+
+A second worker, `client-sites-email`, lets clients without a GitHub account
+use the click-to-edit editor (`/edit/`): Cloudflare Access emails them a
+one-time code, and the worker makes the editor's GitHub calls with Blake's
+fine-grained token, only for the repo that email is listed for. The GitHub
+sign-in above is untouched and keeps working. `/admin/` (Sveltia) still needs
+GitHub.
+
+- Who may edit what: the `EDITORS` KV list (emails stay out of this public repo).
+  - Add: `npx wrangler kv key put --binding EDITORS --remote "client@example.com" "bcreates440/<repo>"` (run in `email/`)
+  - Remove (locks them out at once): `npx wrangler kv key delete --binding EDITORS --remote "client@example.com"`
+- New client repo: add it to the `GITHUB_TOKEN` token's repositories on GitHub.
+- Access app: self-hosted, `client-sites-email.bcreates440.workers.dev/login`, policy Allow / Everyone, one-time PIN login. Only `/login` - never the whole worker.
+- Deploy: `node email/test.mjs` (must print ok), then `npx wrangler deploy` in `email/`.

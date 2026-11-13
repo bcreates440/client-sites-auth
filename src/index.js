@@ -15,6 +15,8 @@
  * /callback address.
  */
 
+import { ALLOWED_ORIGINS } from "./origins.js";
+
 const PROVIDER = "github";
 
 // The only pages allowed to receive a token. The popup hands the token to
@@ -22,15 +24,8 @@ const PROVIDER = "github";
 // /auth in a popup and collect a signed-in editor's token (which carries the
 // `repo` scope - every repo that person can reach, private ones included).
 // Add a client's https origin here when their site goes live, then redeploy.
-const ALLOWED_ORIGINS = [
-  "https://bcreates440.github.io", // every *.github.io/<repo>/ site
-  "https://wwcashow.com",
-  "https://www.wwcashow.com",
-  // Sites hosted on Cloudflare (everything except WWCA, which stays on
-  // GitHub Pages on purpose - see ops/design/hosting-decision.md).
-  "https://jones-uncommon-site.bcreates440.workers.dev",
-  "https://montaire-rally-demo.bcreates440.workers.dev",
-];
+// (The list lives in src/origins.js.)
+
 
 function page(script) {
   return new Response(

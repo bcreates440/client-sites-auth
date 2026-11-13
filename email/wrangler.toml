@@ -1,0 +1,21 @@
+# Email sign-in for the click-to-edit editor. See index.js for how it works.
+# Separate from the GitHub sign-in worker (../wrangler.toml) on purpose:
+# turning on Cloudflare Access here can't touch the GitHub sign-in.
+name = "client-sites-email"
+main = "index.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+# From Cloudflare Zero Trust (Settings -> team domain; the client-sites-email Access app -> AUD tag). Neither is secret.
+TEAM_DOMAIN = "delicate-dream-ad70.cloudflareaccess.com"
+ACCESS_AUD = "e926924c2f0423c5c7f8aac5eec0bdfcc525c195befaaddb3bc337d6596258f4"
+
+# Who may edit which site. Key = email (lower case), value = owner/repo.
+#   npx wrangler kv key put --binding EDITORS --remote "client@example.com" "bcreates440/wwca-site"
+[[kv_namespaces]]
+binding = "EDITORS"
+id = "8155daa660894e3eaf58589c2dcd5717"
+
+# Secrets (not stored here):
+#   npx wrangler secret put GITHUB_TOKEN
+#   npx wrangler secret put SESSION_SECRET
